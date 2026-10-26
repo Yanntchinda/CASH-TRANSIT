@@ -154,9 +154,9 @@ jobs:
           mkdir -p dist-flat
           find release-files -type f \( -name "*.apk" -o -name "*.ipa" -o -name "*.aab" \) -exec cp {} dist-flat/ \;
           ls -lh dist-flat/
-          TAG="v1.0.0"
-          TITLE="Saint Jacquet Distribution v1.0.0 (APK & IPA directs)"
-          NOTES=$'Fichiers mobiles prêts à télécharger directement (sans archive .zip) :\n\n- **Android (.apk direct)** : `Saint-Jacquet-Distribution.apk`\n- **iOS (.ipa direct)** : `Saint-Jacquet-Distribution.ipa`\n- **Google Play Bundle (.aab)** : `Saint-Jacquet-Distribution-release.aab`'
+          TAG="v1.1.0"
+          TITLE="Saint Jacquet Distribution v1.1.0 (Logo d'ouverture Ultra-HD — APK & IPA directs)"
+          NOTES=$'Mise à jour v1.1.0 — Logo d\'ouverture (Splash Screen) Ultra-HD net sur Android & iOS :\n\n- **Android (.apk direct)** : `Saint-Jacquet-Distribution.apk`\n- **iOS (.ipa direct)** : `Saint-Jacquet-Distribution.ipa`\n- **Google Play Bundle (.aab)** : `Saint-Jacquet-Distribution-release.aab`'
           if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
             gh release upload "$TAG" dist-flat/* --clobber -R "${{ github.repository }}"
           else
@@ -165,4 +165,7 @@ jobs:
               --title "$TITLE" \
               --notes "$NOTES" \
               -R "${{ github.repository }}"
+          fi
+          if gh release view "v1.0.0" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "v1.0.0" dist-flat/* --clobber -R "${{ github.repository }}"
           fi
