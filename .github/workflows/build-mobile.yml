@@ -14,6 +14,9 @@ on:
       - master
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-android:
     name: Compiler Android (APK & AAB)
@@ -80,7 +83,7 @@ jobs:
           retention-days: 30
 
   build-ios:
-    name: Compiler iOS (Xcode / IPA non signé)
+    name: Compiler iOS (Xcode / IPA)
     runs-on: macos-latest
     steps:
       - name: Récupération du code source
@@ -100,7 +103,7 @@ jobs:
           CI_UNSIGNED_IOS: "true"
         run: npx cap sync ios
 
-      - name: Compilation Xcode Release (iOS arm64 non signé)
+      - name: Compilation Xcode Release (iOS arm64)
         working-directory: ios/App
         run: |
           xcodebuild \
@@ -115,11 +118,12 @@ jobs:
             AD_HOC_CODE_SIGNING_ALLOWED=YES \
             build
 
-      - name: Empaquetage du fichier IPA (non signé)
+      - name: Signature Ad-Hoc et empaquetage du fichier .ipa
         run: |
           mkdir -p artifacts-ios Payload
           cp -R ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
-          zip -qry artifacts-ios/Saint-Jacquet-Distribution-unsigned.ipa Payload
+          codesign --force --deep --sign - Payload/App.app
+          zip -qry artifacts-ios/Saint-Jacquet-Distribution.ipa Payload
           rm -rf Payload
 
       - name: Publication de l'artefact iOS (IPA)
@@ -129,3 +133,36 @@ jobs:
           path: artifacts-ios/*
           if-no-files-found: error
           retention-days: 30
+
+  publish-release:
+    name: Publier les fichiers directs (.apk & .ipa sans .zip)
+    needs: [build-android, build-ios]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Téléchargement des binaires compilés
+        uses: actions/download-artifact@v4
+        with:
+          path: release-files
+
+      - name: Publication sur GitHub Releases (liens directs .apk, .ipa, .aab)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p dist-flat
+          find release-files -type f \( -name "*.apk" -o -name "*.ipa" -o -name "*.aab" \) -exec cp {} dist-flat/ \;
+          ls -lh dist-flat/
+          TAG="v1.0.0"
+          TITLE="Saint Jacquet Distribution v1.0.0 (APK & IPA directs)"
+          NOTES=$'Fichiers mobiles prêts à télécharger directement (sans archive .zip) :\n\n- **Android (.apk direct)** : `Saint-Jacquet-Distribution.apk`\n- **iOS (.ipa direct)** : `Saint-Jacquet-Distribution.ipa`\n- **Google Play Bundle (.aab)** : `Saint-Jacquet-Distribution-release.aab`'
+          if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist-flat/* --clobber -R "${{ github.repository }}"
+          else
+            gh release create "$TAG" dist-flat/* \
+              --target "${{ github.sha }}" \
+              --title "$TITLE" \
+              --notes "$NOTES" \
+              -R "${{ github.repository }}"
+          fi
