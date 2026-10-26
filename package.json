@@ -1,0 +1,31 @@
+{
+  "name": "saint-jacquet-distribution",
+  "version": "1.0.0",
+  "description": "Application mobile (Android, iOS & PWA) de transit et réservation de fret aérien et maritime — Saint Jacquet Distribution",
+  "private": true,
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "sync": "cap sync",
+    "sync:android": "cap sync android",
+    "sync:ios": "cap sync ios",
+    "open:android": "cap open android",
+    "open:ios": "cap open ios",
+    "assets": "bash scripts/generate-assets.sh",
+    "build:apk": "cap sync android && cd android && ./gradlew assembleDebug",
+    "build:aab": "cap sync android && cd android && ./gradlew bundleRelease"
+  },
+  "dependencies": {
+    "@capacitor/android": "^7.6.9",
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/core": "^7.6.9",
+    "@capacitor/ios": "^7.6.9",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.6"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^7.6.9"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

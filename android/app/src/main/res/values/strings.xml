@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Saint Jacquet Distribution</string>
+    <string name="title_activity_main">Saint Jacquet Distribution</string>
+    <string name="package_name">com.saintjacquet.distribution</string>
+    <string name="custom_url_scheme">com.saintjacquet.distribution</string>
+</resources>

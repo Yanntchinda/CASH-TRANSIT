@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#072563">
+<title>Saint Jacquet Distribution</title>
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Saint Jacquet">
+<meta name="application-name" content="Saint Jacquet Distribution">
+<style>
+:root{--blue:#0b46b5;--ink:#0a1f5c;--muted:#526282;--line:rgba(15,42,102,.1);--bg:#dfeaf5;--ok:#12805c;--ko:#c0392b;--wa:#b86e00}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overscroll-behavior-y:none}
+body{font-family:Roboto,"Segoe UI",system-ui,Arial,sans-serif;background:radial-gradient(ellipse at 18% 15%,#164e87 0%,#0b254d 48%,#040f24 100%);color:var(--ink);display:flex;justify-content:center;align-items:center}
+.app{width:100%;max-width:430px;height:100%;background-color:#dbe8f5;background-image:radial-gradient(circle at 10% 8%,rgba(56,189,248,.30) 0%,transparent 45%),radial-gradient(circle at 90% 16%,rgba(251,191,36,.25) 0%,transparent 48%),radial-gradient(circle at 50% 96%,rgba(14,116,144,.22) 0%,transparent 55%),linear-gradient(168deg,#cbe2f7 0%,#e3eff9 38%,#f5ece0 74%,#ead7c0 100%);display:flex;flex-direction:column;position:relative;overflow:hidden}
+@media(min-width:500px){body:not(.native-app) .app{height:min(900px,96vh);border-radius:36px;box-shadow:0 24px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.12);border:8px solid #101b33}}
+@media(display-mode:standalone){body .app{max-width:100%;height:100%;border-radius:0;box-shadow:none;border:0}}
+body.native-app{background:#dbe8f5}
+body.native-app .app{max-width:100%;height:100%;border-radius:0;box-shadow:none;border:0}
+body.native-app .main>*{max-width:560px;margin-left:auto;margin-right:auto}
+body.native-app .main.nopad>.login{max-width:100%}
+body.native-app .lg-card{max-width:460px;width:calc(100% - 28px);margin-left:auto;margin-right:auto}
+.main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(16px + env(safe-area-inset-top)) 14px 20px}
+.main.nopad{padding:0}
+svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.hero{background:linear-gradient(135deg,#072563 0%,#0b46b5 58%,#0ea5e9 100%);color:#fff;border-radius:12px;padding:22px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 8px 20px rgba(7,37,99,.28)}
+.hero svg{width:30px;height:30px}
+.hero h1{margin:0;font-size:22px;line-height:1.15;letter-spacing:.2px}
+.sub{display:flex;align-items:center;gap:8px;margin:10px 2px 14px;font-size:13px;color:#0d3b94}
+.flag{width:26px;height:18px;border-radius:3px;background:linear-gradient(90deg,#007a5e 33.3%,#ce1126 33.3% 66.6%,#fcd116 66.6%);position:relative;flex:none}
+.flag:after{content:"★";color:#fcd116;font-size:9px;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+/* slider */
+.slider{position:relative;border-radius:14px;overflow:hidden;height:196px;box-shadow:0 8px 22px rgba(7,31,82,.26);background:#082359}
+.track{display:flex;height:100%;transition:transform .6s cubic-bezier(.22,1,.36,1)}
+.slide{min-width:100%;height:100%;position:relative}
+.slide>svg,.slide>img{width:100%;height:100%;display:block;object-fit:cover;fill:currentColor;stroke:none;stroke-width:0}
+.cap{position:absolute;left:0;right:0;bottom:0;padding:34px 14px 24px;color:#fff;background:linear-gradient(to top,rgba(4,15,45,.90) 0%,rgba(4,15,45,.45) 60%,transparent 100%);text-shadow:0 1px 4px rgba(0,0,0,.45)}
+.cap b{display:block;font-size:18px}.cap span{font-size:12.5px;opacity:.95}
+.dots{position:absolute;bottom:8px;left:0;right:0;display:flex;justify-content:center;gap:6px}
+.dots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.5);cursor:pointer}
+.dots i.on{background:#fff;width:20px;border-radius:4px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stats.s2{grid-template-columns:1fr 1fr}
+.stat{background:rgba(255,255,255,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.72);border-radius:12px;padding:10px 8px;text-align:center;box-shadow:0 4px 12px rgba(10,31,92,.07)}
+.stat b{display:block;font-size:17px}.stat span{font-size:11px;color:var(--muted)}
+.card{background:rgba(255,255,255,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.75);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 6px 18px rgba(10,31,92,.08)}
+.card-h{display:flex;gap:12px;align-items:flex-start}
+.card-h .ico{color:var(--blue);padding-top:2px}
+.card-h>div:nth-child(2){flex:1}
+h2{margin:0 0 3px;font-size:18px}.card p{margin:0;font-size:13px;color:#2a3a66}
+.btn{background:linear-gradient(135deg,#072c75 0%,#0b46b5 58%,#1368e6 100%);color:#fff;border:0;border-radius:9px;padding:10px 14px;font:600 13px inherit;font-family:inherit;cursor:pointer;white-space:nowrap;box-shadow:0 3px 10px rgba(11,70,181,.22)}
+.btn.sm{padding:8px 12px}.btn.full{width:100%;padding:13px;font-size:15px;margin-top:6px}
+.btn.ghost{background:#fff;color:var(--blue);border:1px solid var(--blue);box-shadow:none}
+.btn.danger{background:#fff;color:var(--ko);border:1px solid var(--ko);box-shadow:none}
+.btn.ok{background:linear-gradient(135deg,#0d6b4d,#15966c);box-shadow:0 3px 10px rgba(18,128,92,.22)}
+.btn.wabtn{background:linear-gradient(135deg,#0e783f,#16a357);box-shadow:0 3px 10px rgba(18,140,74,.22)}
+a.btn{text-decoration:none;text-align:center;display:inline-block}
+.wa{color:var(--blue);font-weight:700;text-decoration:none;word-break:break-all}
+.btn[disabled]{background:#b9c3da;box-shadow:none;cursor:not-allowed}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:12px 0 2px;padding-bottom:2px}
+.chip{border:1px solid var(--line);background:#fafcff;border-radius:20px;padding:7px 12px;font:600 12.5px inherit;font-family:inherit;color:#34456f;white-space:nowrap;display:flex;gap:5px;align-items:center;cursor:pointer}
+.chip svg{width:16px;height:16px}
+.chip.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 8px}
+.fld{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:#fafcff;min-height:42px;color:var(--blue)}
+.fld span{font-size:13px;color:#3d4c75;white-space:nowrap}
+.fld select,.fld input{border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);width:100%;min-width:0;padding:10px 0;outline:none}
+.lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 5px}
+.box{width:100%;border:1px solid var(--line);border-radius:8px;padding:11px 10px;font:inherit;font-size:14px;background:#fafcff;color:var(--ink);outline:none}
+.box:focus,.fld:focus-within{border-color:var(--blue)}
+.seg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.seg label{border:1px solid var(--line);border-radius:8px;padding:10px 4px;text-align:center;font-size:13px;cursor:pointer;background:#fafcff;display:flex;flex-direction:column;align-items:center;gap:4px}
+.seg input{display:none}.seg input:checked+span{color:var(--blue);font-weight:700}
+.seg label:has(input:checked){border-color:var(--blue);background:#eaf0ff;color:var(--blue)}
+.trip{display:flex;gap:10px;align-items:center;padding:13px 0;border-top:1px solid var(--line)}
+.trip:first-of-type{margin-top:12px}
+.trip .ti{color:var(--blue)}.trip .tm{flex:1;min-width:0}
+.trip b{font-size:15px;display:block}.trip small{display:block;font-size:11.5px;color:#34456f;margin-top:2px;line-height:1.4}
+.trip em{font-style:normal;font-size:11px;color:var(--muted);display:block;margin-top:1px}
+.tag{display:inline-block;font-size:10.5px;background:#eaf0ff;color:var(--blue);border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:middle;font-weight:600}
+.more{text-align:center;padding-top:10px}.more button{background:none;border:0;color:var(--blue);font:600 13px inherit;font-family:inherit;cursor:pointer}
+.empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:14px}
+.st{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;text-align:center}
+.st.ok{background:#e0f5ec;color:var(--ok)}.st.ko{background:#fbe6e3;color:var(--ko)}
+.st.tr{background:#e3ecff;color:var(--blue)}.st.dn{background:#eceff5;color:#4a5878}.st.wa{background:#fff1d6;color:var(--wa)}
+.resa-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.resa-l{font-size:13px;color:#34456f;line-height:1.6;margin-top:6px}
+.actions{display:flex;gap:8px;margin-top:10px}.actions .btn{flex:1}
+.kv{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);font-size:14px;gap:10px}
+nav{display:flex;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid rgba(255,255,255,.78);padding:8px 4px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(10,31,92,.06)}
+nav:empty{display:none}
+nav button{flex:1;background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:3px;font:600 12px inherit;font-family:inherit;color:#44547d;cursor:pointer;position:relative}
+nav button.on{color:var(--blue)}
+nav .bd{position:absolute;top:-4px;left:calc(50% + 6px);background:var(--ko);color:#fff;font-size:10px;border-radius:10px;padding:1px 5px}
+#sheetbg{position:absolute;inset:0;background:rgba(7,25,68,.5);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);display:none;align-items:flex-end;z-index:5}
+#sheetbg.open{display:flex}
+.sheet{background:#fff;width:100%;border-radius:20px 20px 0 0;padding:18px 16px calc(22px + env(safe-area-inset-bottom));max-height:92%;overflow:auto}
+.sheet h3{margin:0 0 4px;font-size:18px}
+.pay label{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:11px;margin-bottom:7px;font-size:14px;cursor:pointer}
+.total{display:flex;justify-content:space-between;font-size:16px;font-weight:700;margin:14px 0 4px}
+.note{font-size:12px;color:var(--muted);background:#f3f6fd;border-radius:8px;padding:9px 10px;margin-top:10px;line-height:1.4}
+#toast{position:absolute;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#072563;color:#fff;padding:10px 16px;border-radius:24px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:9;max-width:88%;text-align:center;box-shadow:0 6px 18px rgba(7,37,99,.32)}
+#toast.show{opacity:1;transform:translateX(-50%)}
+/* connexion */
+.login{min-height:100%;display:flex;flex-direction:column;justify-content:flex-start;background:linear-gradient(180deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.03) 36%,rgba(5,22,60,.18) 100%),url("assets/login-bg.jpg") center center/cover no-repeat}
+.lg-top{background:transparent;padding:calc(20px + env(safe-area-inset-top)) 20px 4px;text-align:center;border-bottom:0}
+.lg-top img{display:block;margin:0 auto;width:186px;max-width:62%;height:auto;filter:drop-shadow(0 6px 16px rgba(10,31,92,.16))}
+.lg-card{margin:8px 14px 24px;background:rgba(255,255,255,.80);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.78);border-radius:16px;padding:15px 16px;box-shadow:0 14px 34px rgba(6,24,68,.22)}
+.lg-card .box{background:rgba(255,255,255,.90)}
+.seg2{display:grid;grid-template-columns:1fr 1fr;background:rgba(11,70,181,.11);border-radius:10px;padding:4px;gap:4px;margin-bottom:6px}
+.seg2 button{border:0;background:transparent;border-radius:8px;padding:11px 6px;font:600 13px inherit;font-family:inherit;color:#44547d;cursor:pointer;display:flex;gap:6px;align-items:center;justify-content:center}
+.seg2 button svg{width:18px;height:18px}
+.seg2 button.on{background:#fff;color:var(--blue);box-shadow:0 1px 4px rgba(10,31,92,.15)}
+.link{background:none;border:0;color:var(--blue);font:600 13px inherit;font-family:inherit;cursor:pointer;display:block;margin:12px auto 0}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="main" id="main"></div>
+  <nav id="nav"></nav>
+  <div id="sheetbg" data-act="closebg"><div class="sheet" id="sheet"></div></div>
+  <div id="toast"></div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n).padStart(2, "0");
+const toInput = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+const nf = new Intl.NumberFormat("fr-FR");
+const money = n => nf.format(Math.round(n)) + " FCFA";
+const perKg = n => nf.format(n) + " FCFA/kg";
+const fmtKg = n => n >= 1000 ? (n/1000).toLocaleString("fr-FR",{maximumFractionDigits:1}) + " t" : nf.format(n) + " kg";
+const rid = () => Math.random().toString(36).slice(2,9);
+const uniq = a => [...new Set(a)];
+
+async function sha(s){
+  const str = "tl::" + s;
+  try { if (window.crypto && crypto.subtle){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join(""); } } catch(e){}
+  let h = 5381; for (const c of str) h = ((h << 5) + h + c.charCodeAt(0)) >>> 0; return "d" + h;
+}
+
+const LOGO = "assets/logo-transparent.png";
+
+const I = {
+  pin:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+  plane:'<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>',
+  ship:'<svg viewBox="0 0 24 24"><path d="M3 15h18l-2.2 5H5.2zM6 15V9h12v6M9 9V5h6v4M12 2v3"/></svg>',
+  all:'<svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5zM3 12l9 5 9-5M3 16l9 5 9-5"/></svg>',
+  cal:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>',
+  calok:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M9 15l2 2 4-4"/></svg>',
+  home:'<svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>',
+  plus:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>',
+  user:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3"/><path d="M6.5 18c1.5-2.5 3.2-3.5 5.5-3.5s4 1 5.5 3.5"/></svg>',
+  shield:'<svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  grid:'<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  out:'<svg viewBox="0 0 24 24"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg>'
+};
+
+/* ---------- Images du slider (illustrations SVG ; remplacez par vos photos via le champ "photo") ---------- */
+const cont = (x,y,c) => `<rect x="${x}" y="${y}" width="24" height="13" fill="${c}"/><rect x="${x}" y="${y}" width="24" height="2" fill="#fff" opacity=".25"/>`;
+const C = ["#e4572e","#2e86ab","#f6b93b","#3aa57a","#8e5ea2","#e4572e","#2e86ab","#f08a24"];
+const SV_AIR = `<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b3fa8"/><stop offset="1" stop-color="#8fc1ff"/></linearGradient></defs>
+<rect width="400" height="190" fill="url(#g1)"/>
+<g fill="#fff" opacity=".85"><ellipse cx="70" cy="140" rx="55" ry="14"/><ellipse cx="110" cy="132" rx="35" ry="12"/><ellipse cx="330" cy="58" rx="45" ry="11"/><ellipse cx="300" cy="172" rx="70" ry="14"/></g>
+<g transform="translate(-8,-14)">
+<path d="M70 108 Q66 93 92 91 L282 91 Q325 91 345 104 L352 112 Q328 123 282 123 L92 123 Q70 123 70 108Z" fill="#fff"/>
+<path d="M80 95 L66 58 L96 58 L116 93Z" fill="#e8eefb"/>
+<path d="M185 118 L246 160 L276 160 L240 112Z" fill="#c7d4f0"/>
+<path d="M185 96 L240 62 L262 62 L236 96Z" fill="#d6e0f7"/>
+<rect x="86" y="108" width="236" height="6" fill="#0b3fa8"/>
+<ellipse cx="222" cy="138" rx="14" ry="7" fill="#9fb3dd"/>
+<path d="M318 98 L338 99 L342 106 L318 106Z" fill="#12306b"/></g></svg>`;
+function svSea(){
+  let s = `<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffcf8a"/><stop offset="1" stop-color="#fff0d9"/></linearGradient><linearGradient id="w2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1b63e0"/><stop offset="1" stop-color="#0a2a73"/></linearGradient></defs>
+<rect width="400" height="190" fill="url(#g2)"/><circle cx="330" cy="50" r="22" fill="#ffb347" opacity=".9"/><rect y="124" width="400" height="66" fill="url(#w2)"/>`;
+  for (let i=0;i<9;i++) s += cont(52+i*26,108,C[i%8]);
+  for (let i=0;i<7;i++) s += cont(78+i*26,94,C[(i+3)%8]);
+  for (let i=0;i<5;i++) s += cont(104+i*26,80,C[(i+5)%8]);
+  s += `<path d="M30 122 L372 122 L346 154 L58 154Z" fill="#14264f"/><rect x="40" y="122" width="324" height="6" fill="#c0392b"/>
+<rect x="296" y="76" width="34" height="46" fill="#fff"/><rect x="301" y="62" width="24" height="14" fill="#e8eefb"/>
+<g fill="#12306b"><rect x="302" y="84" width="6" height="6"/><rect x="312" y="84" width="6" height="6"/><rect x="322" y="84" width="5" height="6"/><rect x="304" y="66" width="18" height="5"/></g>
+<g fill="none" stroke="#fff" stroke-width="2" opacity=".5"><path d="M0 168 q20 -8 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/><path d="M0 180 q20 -8 40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0 t40 0"/></g></svg>`;
+  return s;
+}
+function svPort(){
+  let s = `<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b3a8c"/><stop offset="1" stop-color="#f6a96c"/></linearGradient></defs>
+<rect width="400" height="190" fill="url(#g3)"/><rect y="150" width="400" height="40" fill="#0f2557"/><rect y="132" width="300" height="24" fill="#33405f"/>`;
+  for (let i=0;i<6;i++) s += cont(14+i*26,119,C[i%8]);
+  for (let i=0;i<4;i++) s += cont(40+i*26,106,C[(i+2)%8]);
+  for (let i=0;i<5;i++) s += cont(170+i*24,119,C[(i+4)%8]);
+  s += `<g stroke="#eef3ff" stroke-width="3" fill="none" stroke-linecap="round"><path d="M240 132 L252 52 M296 132 L284 52 M244 90 L292 90"/><path d="M150 52 L340 52"/><path d="M150 52 L252 24 L340 52"/><path d="M312 52 L312 84"/></g>
+<rect x="300" y="84" width="24" height="13" fill="#f6b93b"/><rect x="238" y="46" width="60" height="10" fill="#c0392b"/>
+<path d="M300 150 L400 150 L400 168 L318 168Z" fill="#14264f"/>`;
+  s += `</svg>`; return s;
+}
+const SV_LOAD = `<svg viewBox="0 0 400 190" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b9d4ff"/><stop offset="1" stop-color="#f0f6ff"/></linearGradient></defs>
+<rect width="400" height="190" fill="url(#g4)"/><rect y="146" width="400" height="44" fill="#4a5568"/><g fill="#fff" opacity=".35"><rect x="20" y="164" width="40" height="4"/><rect x="100" y="164" width="40" height="4"/><rect x="180" y="164" width="40" height="4"/></g>
+<path d="M170 76 Q170 46 214 46 L400 46 L400 138 L214 138 Q170 138 170 108Z" fill="#fff"/>
+<rect x="170" y="108" width="230" height="7" fill="#0b3fa8"/>
+<path d="M180 62 L205 62 L205 80 L180 80Z" fill="#12306b"/>
+<rect x="216" y="70" width="52" height="58" fill="#12306b"/><rect x="216" y="70" width="52" height="58" fill="#1b2f66"/>
+<rect x="222" y="108" width="20" height="16" fill="#f6b93b"/><rect x="244" y="108" width="20" height="16" fill="#3aa57a"/><rect x="222" y="90" width="20" height="16" fill="#e4572e"/>
+<path d="M60 146 L214 126 L214 146Z" fill="#8a97b3"/>
+<rect x="90" y="124" width="34" height="18" fill="#f6b93b"/><rect x="132" y="118" width="34" height="18" fill="#2e86ab"/><rect x="176" y="112" width="30" height="16" fill="#e4572e"/>
+<rect x="12" y="108" width="52" height="34" fill="#fff"/><rect x="48" y="116" width="16" height="14" fill="#9fb3dd"/><rect x="8" y="104" width="44" height="6" fill="#0b3fa8"/>
+<circle cx="26" cy="146" r="8" fill="#1d2433"/><circle cx="54" cy="146" r="8" fill="#1d2433"/></svg>`;
+const SLIDES = [
+  { t:"Fret aérien", s:"Vos marchandises livrées en quelques jours vers l'Europe, le Golfe et l'Afrique", svg:SV_AIR, photo:"assets/slide-air.jpg" },
+  { t:"Fret maritime", s:"Groupage et conteneurs", svg:svSea(), photo:"assets/slide-sea.jpg" },
+  { t:"Ports & plateformes logistiques", s:"Des capacités disponibles sur de nombreuses destinations", svg:svPort(), photo:"assets/slide-port.jpg" },
+  { t:"Cargo express", s:"Réservez vos kilos et suivez votre expédition", svg:SV_LOAD, photo:"assets/slide-cargo.jpg" }
+];
+
+/* ---------- Modes de transport (admin : aérien et maritime) ---------- */
+const LOC = {
+  air:["Douala (DLA)","Yaoundé (NSI)","Garoua (GOU)","Paris (CDG)","Bruxelles (BRU)","Dubaï (DXB)","Istanbul (IST)","Addis-Abeba (ADD)","Casablanca (CMN)","Lagos (LOS)","Abidjan (ABJ)","Guangzhou (CAN)","Johannesburg (JNB)"],
+  sea:["Port de Douala","Port de Kribi","Anvers","Le Havre","Marseille","Rotterdam","Ningbo","Shenzhen","Lagos (Apapa)","Abidjan","Dubaï (Jebel Ali)"]
+};
+const MODE = {
+  air:{ label:"Aérien", icon:I.plane, def:["Douala (DLA)","Paris (CDG)"], veh:["Soute d'avion cargo","Avion tout-cargo","Vol passagers (soute)"], cap:2000, prix:2000, transit:1 },
+  sea:{ label:"Maritime", icon:I.ship, def:["Port de Douala","Anvers"], veh:["Conteneur 20' (groupage)","Conteneur 40' (groupage)","Conteneur complet","Cargo conventionnel"], cap:20000, prix:150, transit:25 }
+};
+const NATURES = ["Marchandises générales","Périssable / sous température dirigée","Fragile","Volumineux / hors format","Documents / express","Pièces détachées / équipements"];
+const PAY = { momo:"MTN Mobile Money", om:"Orange Money", virement:"Virement bancaire", cash:"Espèces à l'enlèvement" };
+
+function when(iso){
+  const d = new Date(iso), t = new Date();
+  const a = new Date(d.getFullYear(), d.getMonth(), d.getDate()), b = new Date(t.getFullYear(), t.getMonth(), t.getDate());
+  const diff = Math.round((a - b) / 864e5);
+  let lab = diff === 0 ? "Aujourd'hui" : diff === 1 ? "Demain" : d.toLocaleDateString("fr-FR",{weekday:"short"}).replace(".","");
+  lab = lab.charAt(0).toUpperCase() + lab.slice(1);
+  return { lab, date: d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"}), time: d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}) };
+}
+const arrivalDate = (iso, days) => new Date(new Date(iso).getTime() + days*864e5 + (days === 0 ? 4*36e5 : 0));
+const fmtDate = d => d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"});
+const transitLabel = d => d === 0 ? "même jour" : d + " j";
+
+/* ---------- Données ---------- */
+const KEY = "transit_fret_v3";
+function day(d,h,m){ const x = new Date(); x.setDate(x.getDate()+d); x.setHours(h,m,0,0); return x.toISOString(); }
+function seed(){
+  // mode, origine, destination, jours, h, min, capacité kg, dispo kg, FCFA/kg, transit j, opérateur, moyen
+  const rows = [
+    ["air","Douala (DLA)","Paris (CDG)",1,23,30,4000,1250,2400,1,"AéroFret Cameroun","Avion tout-cargo"],
+    ["air","Douala (DLA)","Bruxelles (BRU)",2,22,0,3000,800,2200,1,"AéroFret Cameroun","Soute d'avion cargo"],
+    ["air","Douala (DLA)","Dubaï (DXB)",3,3,0,5000,2100,1900,1,"Gulf-Afrique Cargo","Avion tout-cargo"],
+    ["air","Yaoundé (NSI)","Douala (DLA)",1,6,0,800,300,450,0,"AéroFret Cameroun","Vol passagers (soute)"],
+    ["air","Douala (DLA)","Lagos (LOS)",2,9,0,1500,600,1200,1,"Sahel Air Fret","Soute d'avion cargo"],
+    ["air","Guangzhou (CAN)","Douala (DLA)",4,14,0,8000,3400,2100,3,"Silk Cargo Express","Avion tout-cargo"],
+    ["air","Douala (DLA)","Istanbul (IST)",5,1,30,3500,1400,2000,1,"Gulf-Afrique Cargo","Soute d'avion cargo"],
+    ["sea","Port de Douala","Anvers",3,12,0,24000,9000,150,22,"MaritimeCam Lines","Conteneur 40' (groupage)"],
+    ["sea","Port de Douala","Le Havre",6,10,0,18000,6200,160,20,"MaritimeCam Lines","Conteneur 20' (groupage)"],
+    ["sea","Ningbo","Port de Douala",5,18,0,26000,11000,120,38,"Orient-Afrique Shipping","Conteneur 40' (groupage)"],
+    ["sea","Port de Kribi","Rotterdam",8,8,0,30000,14500,140,24,"Atlantic Fret","Conteneur complet"],
+    ["sea","Port de Douala","Marseille",9,14,0,15000,5000,170,18,"MaritimeCam Lines","Conteneur 20' (groupage)"],
+    ["sea","Shenzhen","Port de Douala",10,6,0,22000,9000,125,35,"Orient-Afrique Shipping","Conteneur 40' (groupage)"]
+  ];
+  return rows.map((r,i) => ({ id:"s"+(i+1), mode:r[0], from:r[1], to:r[2], when:day(r[3],r[4],r[5]), total:r[6], left:r[7], prix:r[8], transit:r[9], op:r[10], veh:r[11], note:"", custom:false }));
+}
+function mkResa(d,kg,nom,tel,dest,nature,statut,pay,ago){
+  return { id:"r"+rid(), ref:"FR-"+rid().slice(0,5).toUpperCase(), clientId:"demo", clientNom:nom, clientTel:tel, departId:d.id, mode:d.mode, from:d.from, to:d.to, when:d.when,
+    transit:d.transit, kg, total:d.prix*kg, nature, dest, exp:nom, pay, payLabel:PAY[pay], statut, createdAt:Date.now()-ago*6e4 };
+}
+function seedResas(D){
+  return [
+    mkResa(D[0],120,"Mballa Import-Export","677112233","Dupont SARL, Paris","Pièces détachées / équipements","attente","virement",35),
+    mkResa(D[7],1800,"Ngo Bessala & Fils","699445566","Ets Janssens, Anvers","Marchandises générales","attente","virement",190),
+    mkResa(D[2],60,"Tchoumi Cosmétiques","655778899","Gulf Trading LLC, Dubaï","Fragile","validée","momo",600),
+    mkResa(D[4],45,"Kamga Électronique","670223344","Eko Gadgets, Lagos","Fragile","refusée","om",1200)
+  ].map((r,i) => ({ ...r, clientEmail:["m.mballa@exemple.cm","ngo.bessala@exemple.cm","tchoumi.cosm@exemple.cm","kamga.elec@exemple.cm"][i] }));
+}
+async function load(){
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(KEY)); } catch(e){}
+  if (!s || !s.departs){ const D = seed(); s = { departs:D, resas:seedResas(D), users:[], admin:null, session:null }; }
+  if (!s.admin) s.admin = { login:"admin", hash:await sha("Admin@2026") };
+  const now = new Date();
+  if (s.departs.filter(d => !d.custom && new Date(d.when) > now).length < 5) s.departs = s.departs.filter(d => d.custom).concat(seed());
+  return s;
+}
+let db = null;
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(db)); } catch(e){} }
+
+const upcoming = () => db.departs.filter(d => new Date(d.when) > new Date()).sort((a,b) => new Date(a.when) - new Date(b.when));
+function resaStatus(r){
+  if (r.statut === "attente") return { k:"En attente de validation", c:"wa" };
+  if (r.statut === "refusée") return { k:"Refusée", c:"ko" };
+  if (r.statut === "annulée") return { k:"Annulée", c:"ko" };
+  const now = Date.now();
+  if (now < new Date(r.when).getTime()) return { k:"Validée", c:"ok" };
+  if (now < arrivalDate(r.when, r.transit).getTime()) return { k:"En transit", c:"tr" };
+  return { k:"Livrée", c:"dn" };
+}
+const isActive = r => r.statut === "attente" || r.statut === "validée";
+const curUser = () => db.session && db.session.role === "client" ? db.users.find(u => u.id === db.session.uid) : null;
+const normTel = t => String(t).replace(/[\s.()-]/g,"").replace(/^\+?237/,"");
+const validTel = t => /^\+?\d{8,15}$/.test(String(t).replace(/[\s.()-]/g,""));
+const normEmail = e => String(e).trim().toLowerCase();
+const isEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+function waLink(t){ let d = String(t).replace(/\D/g,""); if (d.startsWith("00")) d = d.slice(2); if (/^6\d{8}$/.test(d)) d = "237" + d; return "https://wa.me/" + d; }
+const val = id => ($(id)?.value ?? "").trim();
+
+/* ---------- État UI ---------- */
+let ui = { tab:"home", f:{mode:"",from:"",to:""}, all:false, slide:0, lrole:"client", lmode:"in", rf:"all" };
+let draft = { mode:"air", from:MODE.air.def[0], to:MODE.air.def[1], when:(() => { const d = new Date(); d.setDate(d.getDate()+2); d.setHours(10,0,0,0); return toInput(d); })() };
+let sheet = null;
+const opts = (list, sel, any) => (any ? `<option value="">${any}</option>` : "") + list.map(c => `<option ${c===sel?"selected":""}>${esc(c)}</option>`).join("");
+
+/* ---------- Slider ---------- */
+let sliderTimer = null;
+function sliderHTML(){
+  return `<div class="slider" id="slider"><div class="track" id="track" style="transform:translateX(-${ui.slide*100}%)">
+    ${SLIDES.map(sl => `<div class="slide">${sl.photo ? `<img src="${esc(sl.photo)}" alt="${esc(sl.t)}">` : sl.svg}<div class="cap"><b>${esc(sl.t)}</b><span>${esc(sl.s)}</span></div></div>`).join("")}
+  </div><div class="dots">${SLIDES.map((_,i) => `<i class="${i===ui.slide?"on":""}" data-act="slide" data-id="${i}"></i>`).join("")}</div></div>`;
+}
+function goSlide(i){
+  ui.slide = (i + SLIDES.length) % SLIDES.length;
+  const t = $("#track"); if (t) t.style.transform = `translateX(-${ui.slide*100}%)`;
+  document.querySelectorAll(".dots i").forEach((d,k) => d.classList.toggle("on", k === ui.slide));
+}
+function startSlider(){ clearInterval(sliderTimer); if ($("#slider")) sliderTimer = setInterval(() => goSlide(ui.slide+1), 4000); }
+
+/* ---------- Composants ---------- */
+function tripRow(d, client){
+  const w = when(d.when), m = MODE[d.mode];
+  return `<div class="trip">
+    <div class="ti">${m.icon}</div>
+    <div class="tm"><b>${esc(d.from)} → ${esc(d.to)}<span class="tag">${m.label}</span></b>
+      <small>${w.lab} · ${w.date} · ${w.time} · transit ${transitLabel(d.transit)} · <b style="display:inline">${fmtKg(d.left)}</b> dispo · ${perKg(d.prix)}</small>
+      <em>${esc(d.veh)} · ${esc(d.op)} · arrivée ≈ ${fmtDate(arrivalDate(d.when, d.transit))}</em></div>
+    ${client ? `<button class="btn sm" data-act="book" data-id="${d.id}" ${d.left<1?"disabled":""}>${d.left<1?"Complet":"Réserver"}</button>` : ""}
+  </div>`;
+}
+function resaCard(r, admin){
+  const w = when(r.when), s = resaStatus(r), m = MODE[r.mode];
+  let acts = "";
+  const wab = admin ? `<a class="btn sm wabtn" href="${waLink(r.clientTel)}" target="_blank" rel="noopener">Contacter sur WhatsApp</a>` : "";
+  if (admin && r.statut !== "attente") acts = `<div class="actions">${wab}</div>`;
+  if (admin && r.statut === "attente") acts = `<div class="actions">${wab}<button class="btn sm ok" data-act="validate" data-id="${r.id}">Valider</button><button class="btn sm danger" data-act="reject" data-id="${r.id}">Refuser</button></div>`;
+  if (!admin && r.statut === "attente") acts = `<div class="actions"><button class="btn sm danger" data-act="cancel" data-id="${r.id}">Annuler ma demande</button></div>`;
+  return `<section class="card">
+    <div class="resa-top"><h2 style="font-size:16px">${esc(r.from)} → ${esc(r.to)}</h2><span class="st ${s.c}">${s.k}</span></div>
+    <div class="resa-l"><span class="tag" style="margin:0">${m.label}</span><br>
+      ${admin ? `Client : <b>${esc(r.clientNom)}</b><br>WhatsApp : <a class="wa" href="${waLink(r.clientTel)}" target="_blank" rel="noopener">${esc(r.clientTel)}</a>${r.clientEmail ? `<br>E-mail : <a class="wa" href="mailto:${esc(r.clientEmail)}">${esc(r.clientEmail)}</a>` : ""}<br>` : ""}
+      Départ ${w.lab} ${w.date} à ${w.time} · arrivée ≈ ${fmtDate(arrivalDate(r.when, r.transit))}<br>
+      ${esc(r.nature)} · <b>${fmtKg(r.kg)}</b> · <b>${money(r.total)}</b><br>
+      Destinataire : ${esc(r.dest)}<br>
+      Paiement prévu : ${esc(r.payLabel)} · Réf. <b>${esc(r.ref)}</b></div>
+    ${acts}</section>`;
+}
+
+/* ---------- Connexion ---------- */
+function viewLogin(){
+  const adm = ui.lrole === "admin", up = ui.lmode === "up";
+  return `<div class="login">
+    <div class="lg-top"><img src="${LOGO}" alt="Saint Jacquet Distribution"></div>
+    <div class="lg-card">
+      <div class="seg2">
+        <button class="${!adm?"on":""}" data-act="lrole" data-id="client">${I.user}Espace client</button>
+        <button class="${adm?"on":""}" data-act="lrole" data-id="admin">${I.shield}Administrateur</button>
+      </div>
+      ${adm ? `
+        <span class="lbl">Identifiant</span><input class="box" id="lLogin" autocomplete="username" placeholder="Identifiant administrateur">
+        <span class="lbl">Mot de passe</span><input class="box" id="lPwd" type="password" autocomplete="current-password" placeholder="Mot de passe">
+        <button class="btn full" id="lgBtn" data-act="alogin">Accéder au tableau de bord</button>
+      ` : up ? `
+        <span class="lbl">Nom / société</span><input class="box" id="lNom" placeholder="Ex : Mballa Import-Export">
+        <span class="lbl">Contact WhatsApp</span><input class="box" id="lTel" inputmode="tel" placeholder="Ex : 6XX XXX XXX (numéro WhatsApp)">
+        <span class="lbl">Adresse e-mail</span><input class="box" id="lEmail" type="email" autocomplete="email" placeholder="vous@exemple.com">
+        <span class="lbl">Mot de passe (6 caractères min.)</span><input class="box" id="lPwd" type="password" autocomplete="new-password">
+        <span class="lbl">Confirmer le mot de passe</span><input class="box" id="lPwd2" type="password" autocomplete="new-password">
+        <button class="btn full" id="lgBtn" data-act="csignup">Créer mon compte</button>
+        <button class="link" data-act="lmode" data-id="in">J'ai déjà un compte</button>
+      ` : `
+        <span class="lbl">Adresse e-mail</span><input class="box" id="lEmail" type="email" autocomplete="username" placeholder="vous@exemple.com">
+        <span class="lbl">Mot de passe</span><input class="box" id="lPwd" type="password" autocomplete="current-password">
+        <button class="btn full" id="lgBtn" data-act="clogin">Se connecter</button>
+        <button class="link" data-act="lmode" data-id="up">Créer un compte client</button>
+      `}
+    </div>
+  </div>`;
+}
+
+/* ---------- Espace client ---------- */
+function viewHome(){
+  const up = upcoming();
+  const byMode = up.filter(d => !ui.f.mode || d.mode === ui.f.mode);
+  const froms = uniq(byMode.map(d => d.from)).sort(), tos = uniq(byMode.map(d => d.to)).sort();
+  const list = byMode.filter(d => (!ui.f.from || d.from === ui.f.from) && (!ui.f.to || d.to === ui.f.to));
+  const shown = ui.all ? list : list.slice(0,4);
+  const free = up.reduce((s,d) => s + d.left, 0), dest = uniq(up.map(d => d.to)).length;
+  const cnt = m => up.filter(d => d.mode === m).length;
+  const chip = (k,label,ic,n) => `<button class="chip ${ui.f.mode===k?"on":""}" data-act="fmode" data-id="${k}">${ic}${label} (${n})</button>`;
+  return `
+  ${sliderHTML()}
+  <div class="sub"><i class="flag"></i><span><b>Cameroun</b> — Fret aérien &amp; maritime</span></div>
+  <div class="stats">
+    <div class="stat"><b>${up.length}</b><span>Départs</span></div>
+    <div class="stat"><b>${fmtKg(free)}</b><span>Capacité libre</span></div>
+    <div class="stat"><b>${dest}</b><span>Destinations</span></div>
+  </div>
+  <section class="card">
+    <div class="card-h"><div class="ico">${I.calok}</div>
+      <div><h2>Réserver du fret</h2><p>Choisissez un départ et réservez vos kilos</p></div></div>
+    <div class="chips">${chip("","Tous",I.all,up.length)}${chip("air","Aérien",I.plane,cnt("air"))}${chip("sea","Maritime",I.ship,cnt("sea"))}</div>
+    <div class="two" style="margin-top:10px">
+      <label class="fld"><span>De :</span><select id="fFrom">${opts(froms, ui.f.from, "Toutes")}</select></label>
+      <label class="fld"><span>À :</span><select id="fTo">${opts(tos, ui.f.to, "Toutes")}</select></label>
+    </div>
+    ${shown.length ? shown.map(d => tripRow(d,true)).join("") : `<div class="empty">Aucun départ pour ce trajet pour le moment.</div>`}
+    ${list.length > 4 ? `<div class="more"><button data-act="toggleall">${ui.all ? "Voir moins" : `Voir les ${list.length} départs`}</button></div>` : ""}
+  </section>`;
+}
+function viewResasClient(){
+  const u = curUser();
+  const list = db.resas.filter(r => u && r.clientId === u.id).sort((a,b) => b.createdAt - a.createdAt);
+  return `<div class="hero">${I.calok}<h1 style="white-space:nowrap">MES RÉSERVATIONS</h1></div><div style="height:14px"></div>
+  ${list.length ? list.map(r => resaCard(r,false)).join("") : `<section class="card"><div class="empty">Aucune réservation pour le moment.<br><br><button class="btn" data-act="tab" data-id="home">Voir les départs</button></div></section>`}`;
+}
+function viewProfileClient(){
+  const u = curUser(); if (!u) return "";
+  const mine = db.resas.filter(r => r.clientId === u.id && isActive(r));
+  return `<div class="hero">${I.user}<h1>MON<br>PROFIL</h1></div>
+  <section class="card" style="margin-top:14px">
+    <span class="lbl" style="margin-top:0">Nom / société</span><input class="box" id="uNom" value="${esc(u.nom)}">
+    <span class="lbl">Adresse e-mail (identifiant de connexion)</span><input class="box" value="${esc(u.email || "—")}" disabled>
+    <span class="lbl">Contact WhatsApp</span><input class="box" id="uTel" inputmode="tel" value="${esc(u.tel)}">
+    <button class="btn full" data-act="saveprofile">Enregistrer</button>
+  </section>
+  <section class="card"><h2 style="margin-bottom:6px">Mon activité</h2>
+    <div class="kv"><span>Demandes en cours / validées</span><b>${mine.length}</b></div>
+    <div class="kv"><span>Fret réservé</span><b>${fmtKg(mine.reduce((s,r)=>s+r.kg,0))}</b></div>
+    <div class="kv"><span>Total engagé</span><b>${money(mine.reduce((s,r)=>s+r.total,0))}</b></div>
+  </section>
+  <button class="btn full danger" data-act="logout">Se déconnecter</button>`;
+}
+
+/* ---------- Espace administrateur ---------- */
+function viewDash(){
+  const act = db.resas.filter(isActive), pend = db.resas.filter(r => r.statut === "attente").sort((a,b) => a.createdAt - b.createdAt);
+  const ca = db.resas.filter(r => r.statut === "validée").reduce((s,r) => s + r.total, 0);
+  return `<div class="hero">${I.shield}<h1>TABLEAU DE BORD<br>ADMINISTRATEUR</h1></div><div style="height:14px"></div>
+  <div class="stats s2">
+    <div class="stat"><b>${pend.length}</b><span>Demandes en attente</span></div>
+    <div class="stat"><b>${upcoming().length}</b><span>Départs actifs</span></div>
+    <div class="stat"><b>${fmtKg(act.reduce((s,r)=>s+r.kg,0))}</b><span>Fret réservé</span></div>
+    <div class="stat"><b>${nf.format(Math.round(ca))}</b><span>CA validé (FCFA)</span></div>
+  </div>
+  <h2 style="margin:4px 2px 10px;font-size:16px">Demandes à valider</h2>
+  ${pend.length ? pend.map(r => resaCard(r,true)).join("") : `<section class="card"><div class="empty">Aucune demande en attente.</div></section>`}`;
+}
+function viewDeps(){
+  const m = draft.mode, list = upcoming();
+  return `<div class="hero">${I.plus}<h1>MES<br>DÉPARTS</h1></div>
+  <section class="card" style="margin-top:14px"><h2>Publier un départ</h2>
+    <span class="lbl">Type de fret</span>
+    <div class="seg">${["air","sea"].map(k => `<label>${MODE[k].icon}<input type="radio" name="pMode" value="${k}" ${m===k?"checked":""}><span>Fret ${MODE[k].label.toLowerCase()}</span></label>`).join("")}</div>
+    <span class="lbl">Moyen de transport</span><select class="box" id="pVeh">${MODE[m].veh.map(v => `<option>${v}</option>`).join("")}</select>
+    <div class="two" style="margin-bottom:0">
+      <div><span class="lbl" style="margin-top:0">Origine</span><select class="box" id="pFrom">${opts(LOC[m], draft.from)}</select></div>
+      <div><span class="lbl" style="margin-top:0">Destination</span><select class="box" id="pTo">${opts(LOC[m], draft.to)}</select></div>
+    </div>
+    <span class="lbl">Date et heure de départ</span><input class="box" type="datetime-local" id="pWhen" value="${draft.when}">
+    <div class="two" style="margin-bottom:0">
+      <div><span class="lbl" style="margin-top:0">Capacité (kg)</span><input class="box" type="number" id="pCap" min="1" value="${MODE[m].cap}"></div>
+      <div><span class="lbl" style="margin-top:0">Prix (FCFA/kg)</span><input class="box" type="number" id="pPrix" min="1" value="${MODE[m].prix}"></div>
+    </div>
+    <span class="lbl">Durée de transit (jours)</span><input class="box" type="number" id="pTransit" min="0" max="90" value="${MODE[m].transit}">
+    <span class="lbl">Compagnie / armateur</span><input class="box" id="pBy" placeholder="Nom de la compagnie aérienne ou maritime">
+    <span class="lbl">Note (optionnel)</span><input class="box" id="pNote" placeholder="Ex : dépôt 24 h avant le départ">
+    <button class="btn full" data-act="publish">Publier le départ</button>
+  </section>
+  <section class="card"><h2>Départs publiés (${list.length})</h2>
+    ${list.length ? list.map(d => { const w = when(d.when), m2 = MODE[d.mode]; return `<div class="trip">
+      <div class="ti">${m2.icon}</div>
+      <div class="tm"><b>${esc(d.from)} → ${esc(d.to)}</b><small>${w.lab} · ${w.date} · ${w.time} · ${perKg(d.prix)}</small><em>Réservé ${fmtKg(d.total-d.left)} sur ${fmtKg(d.total)} · ${esc(d.op)}</em></div>
+      <button class="btn sm danger" data-act="deldep" data-id="${d.id}">Retirer</button></div>`; }).join("") : `<div class="empty">Aucun départ publié.</div>`}
+  </section>`;
+}
+function viewResasAdmin(){
+  const F = { all:()=>true, attente:r=>r.statut==="attente", validée:r=>r.statut==="validée", autres:r=>r.statut==="refusée"||r.statut==="annulée" };
+  const list = db.resas.filter(F[ui.rf]).sort((a,b) => b.createdAt - a.createdAt);
+  const n = k => db.resas.filter(F[k]).length;
+  const ch = (k,l) => `<button class="chip ${ui.rf===k?"on":""}" data-act="rfilter" data-id="${k}">${l} (${n(k)})</button>`;
+  return `<div class="hero">${I.calok}<h1>RÉSERVATIONS<br>CLIENTS</h1></div>
+  <div class="chips">${ch("all","Toutes")}${ch("attente","En attente")}${ch("validée","Validées")}${ch("autres","Refusées / annulées")}</div><div style="height:10px"></div>
+  ${list.length ? list.map(r => resaCard(r,true)).join("") : `<section class="card"><div class="empty">Aucune réservation dans cette catégorie.</div></section>`}`;
+}
+function viewProfileAdmin(){
+  return `<div class="hero">${I.shield}<h1>PROFIL<br>ADMINISTRATEUR</h1></div>
+  <section class="card" style="margin-top:14px"><h2>Compte</h2>
+    <div class="kv"><span>Identifiant</span><b>${esc(db.admin.login)}</b></div>
+    <div class="kv"><span>Rôle</span><b>Administrateur</b></div>
+  </section>
+  <section class="card"><h2>Changer le mot de passe</h2>
+    <span class="lbl">Mot de passe actuel</span><input class="box" id="aOld" type="password" autocomplete="current-password">
+    <span class="lbl">Nouveau mot de passe (6 caractères min.)</span><input class="box" id="aNew" type="password" autocomplete="new-password">
+    <span class="lbl">Confirmer</span><input class="box" id="aNew2" type="password" autocomplete="new-password">
+    <button class="btn full" data-act="savepwd">Mettre à jour</button>
+  </section>
+  <button class="btn full danger" data-act="logout">Se déconnecter</button>
+  <button class="btn full ghost" data-act="reset" style="margin-top:10px">Réinitialiser toutes les données</button>`;
+}
+
+/* ---------- Rendu ---------- */
+function render(){
+  const m = $("#main"), top = m.scrollTop, nav = $("#nav");
+  if (!db.session){
+    clearInterval(sliderTimer); m.className = "main nopad"; m.innerHTML = viewLogin(); nav.innerHTML = ""; m.scrollTop = 0; return;
+  }
+  m.className = "main";
+  const adm = db.session.role === "admin";
+  const views = adm ? { dash:viewDash, deps:viewDeps, resas:viewResasAdmin, profile:viewProfileAdmin } : { home:viewHome, resas:viewResasClient, profile:viewProfileClient };
+  if (!views[ui.tab]) ui.tab = adm ? "dash" : "home";
+  m.innerHTML = views[ui.tab](); m.scrollTop = top;
+  const pend = db.resas.filter(r => r.statut === "attente").length;
+  const tabs = adm ? [["dash","Tableau",I.grid],["deps","Départs",I.plus],["resas","Réservations",I.cal],["profile","Profil",I.user]]
+                   : [["home","Accueil",I.home],["resas","Réservations",I.cal],["profile","Profil",I.user]];
+  nav.innerHTML = tabs.map(([k,l,ic]) => `<button class="${ui.tab===k?"on":""}" data-act="tab" data-id="${k}">${ic}${l}${adm&&k==="resas"&&pend?`<span class="bd">${pend}</span>`:""}</button>`).join("");
+  startSlider();
+}
+
+/* ---------- Réservation (client) ---------- */
+function renderSheet(){
+  const d = db.departs.find(x => x.id === sheet.id), u = curUser(); if (!d || !u) return closeSheet();
+  const w = when(d.when);
+  $("#sheet").innerHTML = `
+    <h3>Réserver · ${esc(d.from)} → ${esc(d.to)}</h3>
+    <p style="margin:0 0 6px;font-size:13px;color:#34456f">${MODE[d.mode].label} · ${w.lab} ${w.date} à ${w.time} · transit ${transitLabel(d.transit)}<br>${esc(d.veh)} · ${esc(d.op)} · ${perKg(d.prix)}</p>
+    <span class="lbl">Kilos à réserver — ${fmtKg(d.left)} disponibles</span>
+    <input class="box" type="number" id="sKg" min="1" max="${d.left}" value="${sheet.kg}">
+    <span class="lbl">Nature de la marchandise</span><select class="box" id="sNat">${NATURES.map(n => `<option>${n}</option>`).join("")}</select>
+    <span class="lbl">Expéditeur</span><input class="box" id="sExp" value="${esc(u.nom)}">
+    <span class="lbl">Destinataire (nom / société)</span><input class="box" id="sDest" placeholder="Qui réceptionne à l'arrivée ?">
+    <span class="lbl">Mode de paiement prévu</span>
+    <div class="pay">${Object.entries(PAY).map(([k,v]) => `<label><input type="radio" name="pay" value="${k}" ${k==="momo"?"checked":""}> ${v}</label>`).join("")}</div>
+    <div class="total"><span>Total estimé</span><span id="sTotal">${money(d.prix * sheet.kg)}</span></div>
+    <div class="note">Votre demande sera <b>en attente de validation</b> par l'administrateur. Les kilos sont mis de côté en attendant sa réponse.</div>
+    <button class="btn full" data-act="confirm">Envoyer la demande</button>
+    <button class="btn full ghost" data-act="close" style="margin-top:8px">Fermer</button>`;
+  $("#sheetbg").classList.add("open");
+}
+function closeSheet(){ sheet = null; $("#sheetbg").classList.remove("open"); }
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2800); }
+
+function syncPublish(m){
+  draft.mode = m; draft.from = MODE[m].def[0]; draft.to = MODE[m].def[1];
+  $("#pVeh").innerHTML = MODE[m].veh.map(v => `<option>${v}</option>`).join("");
+  $("#pFrom").innerHTML = opts(LOC[m], draft.from); $("#pTo").innerHTML = opts(LOC[m], draft.to);
+  $("#pCap").value = MODE[m].cap; $("#pPrix").value = MODE[m].prix; $("#pTransit").value = MODE[m].transit;
+}
+function release(r){ const d = db.departs.find(x => x.id === r.departId); if (d) d.left = Math.min(d.total, d.left + r.kg); }
+function enter(session){ db.session = session; ui.tab = session.role === "admin" ? "dash" : "home"; ui.f = {mode:"",from:"",to:""}; ui.all = false; ui.rf = "all"; save(); render(); }
+
+/* ---------- Actions ---------- */
+const A = {
+  lrole:(id)=>{ ui.lrole = id; ui.lmode = "in"; render(); },
+  lmode:(id)=>{ ui.lmode = id; render(); },
+  clogin:async()=>{
+    const email = normEmail(val("#lEmail")), pwd = $("#lPwd").value;
+    if (!email || !pwd) return toast("Renseignez e-mail et mot de passe");
+    const h = await sha(pwd), u = db.users.find(x => x.email === email && x.hash === h);
+    if (!u) return toast("E-mail ou mot de passe incorrect");
+    enter({ role:"client", uid:u.id }); toast("Bienvenue " + u.nom);
+  },
+  csignup:async()=>{
+    const nom = val("#lNom"), tel = val("#lTel"), email = normEmail(val("#lEmail")), p1 = $("#lPwd").value, p2 = $("#lPwd2").value;
+    if (nom.length < 2) return toast("Indiquez votre nom");
+    if (!validTel(tel)) return toast("Numéro WhatsApp invalide");
+    if (!isEmail(email)) return toast("Adresse e-mail invalide");
+    if (p1.length < 6) return toast("Mot de passe : 6 caractères minimum");
+    if (p1 !== p2) return toast("Les mots de passe ne correspondent pas");
+    if (db.users.some(x => x.email === email)) return toast("Cet e-mail a déjà un compte");
+    const u = { id:"u"+rid(), nom, tel, email, hash:await sha(p1) }; db.users.push(u);
+    enter({ role:"client", uid:u.id }); toast("Compte créé ✔");
+  },
+  alogin:async()=>{
+    const l = val("#lLogin"), pwd = $("#lPwd").value;
+    if (!l || !pwd) return toast("Renseignez identifiant et mot de passe");
+    if (l !== db.admin.login || await sha(pwd) !== db.admin.hash) return toast("Identifiants administrateur incorrects");
+    enter({ role:"admin" });
+  },
+  logout:()=>{ closeSheet(); db.session = null; ui.lrole = "client"; ui.lmode = "in"; save(); render(); },
+  tab:(id)=>{ ui.tab = id; render(); },
+  slide:(id)=>{ goSlide(+id); startSlider(); },
+  fmode:(id)=>{ ui.f = { mode:id, from:"", to:"" }; ui.all = false; render(); },
+  toggleall:()=>{ ui.all = !ui.all; render(); },
+  rfilter:(id)=>{ ui.rf = id; render(); },
+  book:(id)=>{ const d = db.departs.find(x => x.id === id); if (!d || d.left < 1) return; sheet = { id, kg:Math.min(50, d.left) }; renderSheet(); },
+  close:closeSheet,
+  closebg:(id,el,e)=>{ if (e.target === el) closeSheet(); },
+  confirm:()=>{
+    const d = db.departs.find(x => x.id === sheet.id), u = curUser(); if (!d || !u) return;
+    const kg = Math.floor(+val("#sKg")), exp = val("#sExp"), dest = val("#sDest"), pay = document.querySelector('input[name="pay"]:checked').value;
+    if (!(kg >= 1)) return toast("Indiquez un nombre de kilos valide");
+    if (kg > d.left) return toast(`Capacité insuffisante : ${fmtKg(d.left)} disponibles`);
+    if (exp.length < 2) return toast("Indiquez l'expéditeur");
+    if (dest.length < 2) return toast("Indiquez le destinataire");
+    d.left -= kg;
+    db.resas.push({ id:"r"+rid(), ref:"FR-"+rid().slice(0,5).toUpperCase(), clientId:u.id, clientNom:u.nom, clientTel:u.tel, clientEmail:u.email, departId:d.id, mode:d.mode, from:d.from, to:d.to, when:d.when,
+      transit:d.transit, kg, total:d.prix*kg, nature:val("#sNat"), dest, exp, pay, payLabel:PAY[pay], statut:"attente", createdAt:Date.now() });
+    save(); closeSheet(); ui.tab = "resas"; render(); toast("Demande envoyée — en attente de validation");
+  },
+  cancel:(id)=>{
+    const r = db.resas.find(x => x.id === id); if (!r || r.statut !== "attente") return;
+    if (!confirm("Annuler cette demande ?")) return;
+    r.statut = "annulée"; release(r); save(); render(); toast("Demande annulée");
+  },
+  validate:(id)=>{ const r = db.resas.find(x => x.id === id); if (!r || r.statut !== "attente") return; r.statut = "validée"; save(); render(); toast("Réservation validée ✔"); },
+  reject:(id)=>{
+    const r = db.resas.find(x => x.id === id); if (!r || r.statut !== "attente") return;
+    if (!confirm("Refuser cette demande ? Les kilos seront remis en vente.")) return;
+    r.statut = "refusée"; release(r); save(); render(); toast("Demande refusée");
+  },
+  publish:()=>{
+    const m = document.querySelector('input[name="pMode"]:checked').value;
+    const from = val("#pFrom"), to = val("#pTo"), whenV = val("#pWhen"), cap = +val("#pCap"), prix = +val("#pPrix"), transit = +val("#pTransit"), by = val("#pBy");
+    if (from === to) return toast("Origine et destination doivent être différentes");
+    if (!whenV || new Date(whenV) <= new Date()) return toast("Choisissez une date future");
+    if (!(cap >= 1)) return toast("Indiquez la capacité en kg");
+    if (!(prix > 0)) return toast("Indiquez un prix au kg valide");
+    if (!(transit >= 0)) return toast("Durée de transit invalide");
+    if (by.length < 2) return toast("Indiquez la compagnie");
+    db.departs.push({ id:"u"+rid(), mode:m, from, to, when:new Date(whenV).toISOString(), total:Math.floor(cap), left:Math.floor(cap), prix, transit:Math.floor(transit), op:by, veh:val("#pVeh"), note:val("#pNote"), custom:true });
+    save(); render(); toast("Départ publié ✔ — visible par les clients");
+  },
+  deldep:(id)=>{
+    if (db.resas.some(r => r.departId === id && isActive(r))) return toast("Impossible : des réservations sont liées à ce départ");
+    if (!confirm("Retirer ce départ ?")) return;
+    db.departs = db.departs.filter(d => d.id !== id); save(); render();
+  },
+  saveprofile:()=>{ const u = curUser(), nom = val("#uNom"), tel = val("#uTel"); if (!u) return; if (nom.length < 2) return toast("Indiquez un nom valide"); if (!validTel(tel)) return toast("Numéro WhatsApp invalide"); u.nom = nom; u.tel = tel; save(); toast("Profil enregistré ✔"); },
+  savepwd:async()=>{
+    const o = $("#aOld").value, n = $("#aNew").value, n2 = $("#aNew2").value;
+    if (await sha(o) !== db.admin.hash) return toast("Mot de passe actuel incorrect");
+    if (n.length < 6) return toast("Nouveau mot de passe : 6 caractères minimum");
+    if (n !== n2) return toast("Les mots de passe ne correspondent pas");
+    db.admin.hash = await sha(n); save(); render(); toast("Mot de passe mis à jour ✔");
+  },
+  reset:async()=>{
+    if (!confirm("Supprimer TOUTES les données (comptes clients, réservations, départs) et restaurer les exemples ?")) return;
+    localStorage.removeItem(KEY); db = await load(); save(); ui = { tab:"home", f:{mode:"",from:"",to:""}, all:false, slide:0, lrole:"client", lmode:"in", rf:"all" }; render(); toast("Données réinitialisées");
+  }
+};
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-act]"); if (!el) return;
+  const fn = A[el.dataset.act]; if (fn) fn(el.dataset.id, el, e);
+});
+document.addEventListener("change", e => {
+  const t = e.target, id = t.id, v = t.value;
+  if (t.name === "pMode") return syncPublish(v);
+  const map = { pFrom:"from", pTo:"to", pWhen:"when" };
+  if (map[id]) draft[map[id]] = v;
+  if (id === "fFrom"){ ui.f.from = v; ui.all = false; render(); }
+  if (id === "fTo"){ ui.f.to = v; ui.all = false; render(); }
+});
+document.addEventListener("input", e => {
+  if (e.target.id === "sKg" && sheet){
+    const d = db.departs.find(x => x.id === sheet.id), kg = Math.max(0, Math.floor(+e.target.value) || 0);
+    sheet.kg = kg; $("#sTotal").textContent = money(d.prix * kg);
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && sheet) closeSheet();
+  if (e.key === "Enter" && e.target.closest(".lg-card")){ const b = $("#lgBtn"); if (b) b.click(); }
+});
+let tx = null;
+document.addEventListener("touchstart", e => { if (e.target.closest("#slider")) tx = e.touches[0].clientX; }, { passive:true });
+document.addEventListener("touchend", e => {
+  if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; tx = null;
+  if (Math.abs(dx) > 40){ goSlide(ui.slide + (dx < 0 ? 1 : -1)); startSlider(); }
+});
+
+function initNativeBridge(){
+  const cap = window.Capacitor;
+  const isNative = !!(cap && typeof cap.isNativePlatform === "function" && cap.isNativePlatform());
+  if (isNative){
+    document.body.classList.add("native-app");
+    const P = cap.Plugins || {};
+    const platform = typeof cap.getPlatform === "function" ? cap.getPlatform() : "";
+    if (P.StatusBar){
+      if (platform === "android"){
+        P.StatusBar.setOverlaysWebView({ overlay:false }).catch(()=>{});
+        P.StatusBar.setBackgroundColor({ color:"#072563" }).catch(()=>{});
+        P.StatusBar.setStyle({ style:"DARK" }).catch(()=>{});
+      } else {
+        P.StatusBar.setStyle({ style:"LIGHT" }).catch(()=>{});
+      }
+    }
+    if (P.App){
+      P.App.addListener("backButton", () => {
+        if (sheet){ closeSheet(); return; }
+        if (db && db.session){
+          const rootTab = db.session.role === "admin" ? "dash" : "home";
+          if (ui.tab !== rootTab){ ui.tab = rootTab; render(); return; }
+        } else if (ui.lmode === "up" || ui.lrole === "admin"){
+          ui.lrole = "client"; ui.lmode = "in"; render(); return;
+        }
+        P.App.exitApp();
+      });
+    }
+    if (P.SplashScreen){
+      P.SplashScreen.hide().catch(()=>{});
+    }
+  } else if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1")){
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  }
+}
+
+(async () => { db = await load(); save(); render(); initNativeBridge(); })();
+</script>
+</body>
+</html>

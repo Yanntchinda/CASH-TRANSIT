@@ -1,0 +1,131 @@
+name: Compilation Mobile (Android & iOS)
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - "arena/**"
+    tags:
+      - "v*"
+  pull_request:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    name: Compiler Android (APK & AAB)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupération du code source
+        uses: actions/checkout@v4
+
+      - name: Configuration de Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Configuration de Java 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+          cache: "gradle"
+
+      - name: Installation des dépendances npm
+        run: npm ci
+
+      - name: Synchronisation Capacitor Android
+        run: npx cap sync android
+
+      - name: Droits d'exécution Gradle Wrapper
+        run: chmod +x android/gradlew
+
+      - name: Compilation de l'APK installable (Debug) et du Bundle Release (AAB)
+        working-directory: android
+        run: ./gradlew assembleDebug assembleRelease bundleRelease --no-daemon
+
+      - name: Signature et préparation des fichiers Android
+        run: |
+          mkdir -p artifacts-android
+          cp android/app/build/outputs/apk/debug/app-debug.apk artifacts-android/Saint-Jacquet-Distribution-debug.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab artifacts-android/Saint-Jacquet-Distribution-release.aab
+          SDK_DIR="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [ -n "$SDK_DIR" ] && [ -d "$SDK_DIR/build-tools" ]; then
+            BT="$SDK_DIR/build-tools/$(ls -1 "$SDK_DIR/build-tools" | sort -V | tail -n 1)"
+            keytool -genkeypair -v -keystore /tmp/release.p12 -storetype PKCS12 \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -alias saintjacquet -storepass SjDist2026! -keypass SjDist2026! \
+              -dname "CN=Saint Jacquet Distribution, OU=Mobile, O=Saint Jacquet, L=Douala, ST=Littoral, C=CM"
+            "$BT/zipalign" -p 4 \
+              android/app/build/outputs/apk/release/app-release-unsigned.apk \
+              /tmp/app-release-aligned.apk
+            "$BT/apksigner" sign --ks /tmp/release.p12 --ks-pass pass:SjDist2026! \
+              --out artifacts-android/Saint-Jacquet-Distribution.apk \
+              /tmp/app-release-aligned.apk
+            rm -f /tmp/release.p12 /tmp/app-release-aligned.apk
+          else
+            cp android/app/build/outputs/apk/debug/app-debug.apk artifacts-android/Saint-Jacquet-Distribution.apk
+          fi
+
+      - name: Publication des artefacts Android (APK & AAB)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Saint-Jacquet-Distribution-Android
+          path: artifacts-android/*
+          if-no-files-found: error
+          retention-days: 30
+
+  build-ios:
+    name: Compiler iOS (Xcode / IPA non signé)
+    runs-on: macos-latest
+    steps:
+      - name: Récupération du code source
+        uses: actions/checkout@v4
+
+      - name: Configuration de Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Installation des dépendances npm
+        run: npm ci
+
+      - name: Synchronisation Capacitor iOS et installation CocoaPods
+        env:
+          CI_UNSIGNED_IOS: "true"
+        run: npx cap sync ios
+
+      - name: Compilation Xcode Release (iOS arm64 non signé)
+        working-directory: ios/App
+        run: |
+          xcodebuild \
+            -workspace App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES \
+            build
+
+      - name: Empaquetage du fichier IPA (non signé)
+        run: |
+          mkdir -p artifacts-ios Payload
+          cp -R ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
+          zip -qry artifacts-ios/Saint-Jacquet-Distribution-unsigned.ipa Payload
+          rm -rf Payload
+
+      - name: Publication de l'artefact iOS (IPA)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Saint-Jacquet-Distribution-iOS
+          path: artifacts-ios/*
+          if-no-files-found: error
+          retention-days: 30

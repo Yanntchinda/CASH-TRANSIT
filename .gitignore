@@ -1,0 +1,21 @@
+# Dépendances Node
+node_modules/
+npm-debug.log*
+
+# Fichiers système / éditeurs
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Clés de signature (ne jamais versionner)
+*.keystore
+*.jks
+*.p12
+*.mobileprovision
+
+# Fichiers d'environnement locaux
+.env
+.env.*
