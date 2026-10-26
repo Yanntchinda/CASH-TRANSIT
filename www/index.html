@@ -376,8 +376,11 @@ function pwaBannerHTML(){
   if (isIOS){
     const sh = '<svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
     return `<div class="pwa-box"><button class="pwa-x" data-act="hidepwa" aria-label="Fermer">×</button>
-      <b>📲 Installer l'application sur votre iPhone</b>
-      Ouvrez ce lien dans <strong>Safari</strong>, appuyez sur Partager ${sh} puis sur <strong>« Sur l'écran d'accueil »</strong>.</div>`;
+      <b>📲 Installer l'application sur iPhone</b>
+      1. Ouvrez ce lien dans <strong>Safari</strong><br>
+      2. Appuyez sur Partager ${sh} en bas de l'écran<br>
+      3. Appuyez sur <strong>« Sur l'écran d'accueil »</strong> puis <strong>Ajouter</strong>
+      <button class="btn sm" style="margin-top:8px;width:100%;background:rgba(255,255,255,.18);box-shadow:none;border:1px solid rgba(255,255,255,.35)" data-act="copylink">Copier le lien pour Safari</button></div>`;
   }
   if (deferredInstallPrompt){
     return `<div class="pwa-box"><button class="pwa-x" data-act="hidepwa" aria-label="Fermer">×</button>
@@ -621,6 +624,10 @@ const A = {
   },
   logout:()=>{ closeSheet(); db.session = null; ui.lrole = "client"; ui.lmode = "in"; save(); render(); },
   hidepwa:()=>{ ui.hidePwa = true; render(); },
+  copylink:async()=>{
+    try { await navigator.clipboard.writeText(location.href); toast("Lien copié ✔ — collez-le dans Safari"); }
+    catch(e){ toast("Ouvrez ce lien dans Safari pour installer"); }
+  },
   installpwa:async()=>{
     if (!deferredInstallPrompt) return;
     deferredInstallPrompt.prompt();
