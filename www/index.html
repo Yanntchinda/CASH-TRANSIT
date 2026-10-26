@@ -68,7 +68,7 @@ a.btn{text-decoration:none;text-align:center;display:inline-block}
 .chip svg{width:16px;height:16px}
 .chip.on{background:var(--blue);color:#fff;border-color:var(--blue)}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0 8px}
-.fld{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:#fafcff;min-height:42px;color:var(--blue)}
+.fld{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:8px;padding:0 8px;background:#fafcff;min-height:42px;color:var(--blue);min-width:0}
 .fld span{font-size:13px;color:#3d4c75;white-space:nowrap}
 .fld select,.fld input{border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink);width:100%;min-width:0;padding:10px 0;outline:none}
 .lbl{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 5px}
@@ -86,12 +86,13 @@ a.btn{text-decoration:none;text-align:center;display:inline-block}
 .tag{display:inline-block;font-size:10.5px;background:#eaf0ff;color:var(--blue);border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:middle;font-weight:600}
 .more{text-align:center;padding-top:10px}.more button{background:none;border:0;color:var(--blue);font:600 13px inherit;font-family:inherit;cursor:pointer}
 .empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:14px}
-.st{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;text-align:center}
+.st{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;text-align:center;flex:none;white-space:nowrap}
 .st.ok{background:#e0f5ec;color:var(--ok)}.st.ko{background:#fbe6e3;color:var(--ko)}
 .st.tr{background:#e3ecff;color:var(--blue)}.st.dn{background:#eceff5;color:#4a5878}.st.wa{background:#fff1d6;color:var(--wa)}
 .resa-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .resa-l{font-size:13px;color:#34456f;line-height:1.6;margin-top:6px}
-.actions{display:flex;gap:8px;margin-top:10px}.actions .btn{flex:1}
+.actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.actions .btn{flex:1 1 auto;min-width:0;padding:7px 8px;font-size:11.5px;border-radius:7px;line-height:1.25;text-align:center}
 .kv{display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid var(--line);font-size:14px;gap:10px}
 nav{display:flex;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid rgba(255,255,255,.78);padding:8px 4px calc(8px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(10,31,92,.06)}
 nav:empty{display:none}

@@ -1,4 +1,4 @@
-const CACHE_NAME = "saint-jacquet-v4";
+const CACHE_NAME = "saint-jacquet-v5";
 const ASSETS = [
   "./",
   "./index.html",
