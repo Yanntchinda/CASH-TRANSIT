@@ -144,11 +144,11 @@ if [ -d "$ANDROID_RES" ]; then
       -alpha off -compose CopyOpacity -composite PNG32:"$dir/ic_launcher_round.png"
   }
 
-  gen_mipmap "mdpi"    48  108 288
-  gen_mipmap "hdpi"    72  162 432
-  gen_mipmap "xhdpi"   96  216 576
-  gen_mipmap "xxhdpi"  144 324 864
-  gen_mipmap "xxxhdpi" 192 432 1152
+  gen_mipmap "mdpi"    48  288 288
+  gen_mipmap "hdpi"    72  432 432
+  gen_mipmap "xhdpi"   96  576 576
+  gen_mipmap "xxhdpi"  144 864 864
+  gen_mipmap "xxxhdpi" 192 1152 1152
 
   gen_splash() {
     local folder="$1"

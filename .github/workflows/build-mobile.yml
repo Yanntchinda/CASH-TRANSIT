@@ -16,8 +16,36 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
+  deploy-pages:
+    name: Déployer la Web App iPhone / PWA gratuite (GitHub Pages)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Récupération du code source
+        uses: actions/checkout@v4
+
+      - name: Activation et configuration de GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Préparation du dossier Web / PWA (www)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./www"
+
+      - name: Déploiement sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
   build-android:
     name: Compiler Android (APK & AAB)
     runs-on: ubuntu-latest
@@ -83,8 +111,16 @@ jobs:
           retention-days: 30
 
   build-ios:
-    name: Compiler iOS (Xcode / IPA)
+    name: Compiler iOS (Xcode / IPA signé ou Ad-Hoc)
     runs-on: macos-latest
+    env:
+      IOS_CERT_B64: ${{ secrets.IOS_CERTIFICATE_BASE64 }}
+      IOS_CERT_PWD: ${{ secrets.IOS_CERTIFICATE_PASSWORD }}
+      IOS_PROV_B64: ${{ secrets.IOS_PROVISION_PROFILE_BASE64 }}
+      IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+      ASC_KEY_ID: ${{ secrets.APPSTORE_API_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.APPSTORE_API_ISSUER_ID }}
+      ASC_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
     steps:
       - name: Récupération du code source
         uses: actions/checkout@v4
@@ -100,26 +136,141 @@ jobs:
 
       - name: Synchronisation Capacitor iOS et installation CocoaPods
         env:
-          CI_UNSIGNED_IOS: "true"
+          CI_UNSIGNED_IOS: ${{ env.IOS_CERT_B64 == '' && 'true' || 'false' }}
         run: npx cap sync ios
 
-      - name: Compilation Xcode Release (iOS arm64)
-        working-directory: ios/App
+      - name: Compilation & Signature officielle Apple (si secrets configurés)
+        if: env.IOS_CERT_B64 != '' && env.IOS_PROV_B64 != ''
         run: |
+          mkdir -p artifacts-ios "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "$IOS_CERT_B64" | base64 --decode > /tmp/cert.p12
+          echo "$IOS_PROV_B64" | base64 --decode > /tmp/profile.mobileprovision
+
+          KEYCHAIN_PWD="TempKeychain2026!"
+          security create-keychain -p "$KEYCHAIN_PWD" /tmp/ios-build.keychain-db
+          security set-keychain-settings -lut 21600 /tmp/ios-build.keychain-db
+          security unlock-keychain -p "$KEYCHAIN_PWD" /tmp/ios-build.keychain-db
+          security import /tmp/cert.p12 -P "$IOS_CERT_PWD" -A -t cert -f pkcs12 -k /tmp/ios-build.keychain-db
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PWD" /tmp/ios-build.keychain-db
+          security list-keychains -d user -s /tmp/ios-build.keychain-db login.keychain-db
+
+          security cms -D -i /tmp/profile.mobileprovision > /tmp/profile.plist
+          UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /tmp/profile.plist)
+          TEAM="${IOS_TEAM_ID:-$(/usr/libexec/PlistBuddy -c "Print TeamIdentifier:0" /tmp/profile.plist)}"
+          cp /tmp/profile.mobileprovision "$HOME/Library/MobileDevice/Provisioning Profiles/$UUID.mobileprovision"
+
+          if /usr/libexec/PlistBuddy -c "Print ProvisionsAllDevices" /tmp/profile.plist >/dev/null 2>&1; then
+            METHOD="enterprise"
+          elif /usr/libexec/PlistBuddy -c "Print ProvisionedDevices" /tmp/profile.plist >/dev/null 2>&1; then
+            ALLOW_DEBUG=$(/usr/libexec/PlistBuddy -c "Print Entitlements:get-task-allow" /tmp/profile.plist 2>/dev/null || echo "false")
+            if [ "$ALLOW_DEBUG" = "true" ]; then METHOD="development"; else METHOD="ad-hoc"; fi
+          else
+            METHOD="app-store-connect"
+          fi
+          echo "Mode d'export Apple détecté : $METHOD (Team: $TEAM, Profil: $UUID)"
+
+          cat > /tmp/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>$METHOD</string>
+            <key>teamID</key>
+            <string>$TEAM</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>com.saintjacquet.distribution</key>
+              <string>$UUID</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+
           xcodebuild \
-            -workspace App.xcworkspace \
+            -workspace ios/App/App.xcworkspace \
             -scheme App \
             -configuration Release \
             -sdk iphoneos \
-            -derivedDataPath build \
+            -archivePath /tmp/App.xcarchive \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="$TEAM" \
+            PROVISIONING_PROFILE_SPECIFIER="$UUID" \
+            archive
+
+          xcodebuild \
+            -exportArchive \
+            -archivePath /tmp/App.xcarchive \
+            -exportOptionsPlist /tmp/ExportOptions.plist \
+            -exportPath /tmp/ipa-out
+
+          cp /tmp/ipa-out/*.ipa artifacts-ios/Saint-Jacquet-Distribution.ipa
+
+          # Manifest OTA (installation directe iPhone via lien HTTPS itms-services://)
+          cat > artifacts-ios/manifest.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>items</key>
+            <array>
+              <dict>
+                <key>assets</key>
+                <array>
+                  <dict>
+                    <key>kind</key>
+                    <string>software-package</string>
+                    <key>url</key>
+                    <string>https://github.com/${{ github.repository }}/releases/download/v1.3.0/Saint-Jacquet-Distribution.ipa</string>
+                  </dict>
+                </array>
+                <key>metadata</key>
+                <dict>
+                  <key>bundle-identifier</key>
+                  <string>com.saintjacquet.distribution</string>
+                  <key>bundle-version</key>
+                  <string>1.3.0</string>
+                  <key>kind</key>
+                  <string>software</string>
+                  <key>title</key>
+                  <string>Saint Jacquet Distribution</string>
+                </dict>
+              </dict>
+            </array>
+          </dict>
+          </plist>
+          EOF
+
+          # Envoi automatique vers TestFlight si la clé App Store Connect est configurée
+          if [ -n "$ASC_KEY_ID" ] && [ -n "$ASC_ISSUER_ID" ] && [ -n "$ASC_PRIVATE_KEY" ]; then
+            mkdir -p "$HOME/.appstoreconnect/private_keys"
+            echo "$ASC_PRIVATE_KEY" > "$HOME/.appstoreconnect/private_keys/AuthKey_${ASC_KEY_ID}.p8"
+            xcrun altool --upload-app --type ios \
+              -f artifacts-ios/Saint-Jacquet-Distribution.ipa \
+              --apiKey "$ASC_KEY_ID" \
+              --apiIssuer "$ASC_ISSUER_ID"
+            rm -rf "$HOME/.appstoreconnect/private_keys"
+          fi
+
+          security delete-keychain /tmp/ios-build.keychain-db || true
+          rm -f /tmp/cert.p12 /tmp/profile.mobileprovision /tmp/profile.plist
+
+      - name: Compilation Xcode Release sans certificat (si secrets non configurés)
+        if: env.IOS_CERT_B64 == '' || env.IOS_PROV_B64 == ''
+        run: |
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath ios/App/build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             AD_HOC_CODE_SIGNING_ALLOWED=YES \
             build
-
-      - name: Signature Ad-Hoc et empaquetage du fichier .ipa
-        run: |
           mkdir -p artifacts-ios Payload
           cp -R ios/App/build/Build/Products/Release-iphoneos/App.app Payload/
           codesign --force --deep --sign - Payload/App.app
@@ -152,11 +303,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p dist-flat
-          find release-files -type f \( -name "*.apk" -o -name "*.ipa" -o -name "*.aab" \) -exec cp {} dist-flat/ \;
+          find release-files -type f \( -name "*.apk" -o -name "*.ipa" -o -name "*.aab" -o -name "*.plist" \) -exec cp {} dist-flat/ \;
           ls -lh dist-flat/
-          TAG="v1.2.0"
-          TITLE="Saint Jacquet Distribution v1.2.0 (Boutons ajustés & Logo Ultra-HD — APK & IPA directs)"
-          NOTES=$'Mise à jour v1.2.0 — Ajustement de la taille des boutons (WhatsApp / Valider / Refuser sans débordement) + Logo d\'ouverture Ultra-HD :\n\n- **Android (.apk direct)** : `Saint-Jacquet-Distribution.apk`\n- **iOS (.ipa direct)** : `Saint-Jacquet-Distribution.ipa`\n- **Google Play Bundle (.aab)** : `Saint-Jacquet-Distribution-release.aab`'
+          TAG="v1.3.0"
+          TITLE="Saint Jacquet Distribution v1.3.0 (APK & IPA directs)"
+          NOTES=$'Fichiers mobiles prêts à télécharger directement (sans archive .zip) :\n\n- **Android (.apk direct)** : `Saint-Jacquet-Distribution.apk`\n- **iOS (.ipa direct)** : `Saint-Jacquet-Distribution.ipa`\n- **Google Play Bundle (.aab)** : `Saint-Jacquet-Distribution-release.aab`'
           if gh release view "$TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
             gh release upload "$TAG" dist-flat/* --clobber -R "${{ github.repository }}"
           else
@@ -166,7 +317,7 @@ jobs:
               --notes "$NOTES" \
               -R "${{ github.repository }}"
           fi
-          for OLD_TAG in v1.1.0 v1.0.0; do
+          for OLD_TAG in v1.2.0 v1.1.0 v1.0.0; do
             if gh release view "$OLD_TAG" -R "${{ github.repository }}" >/dev/null 2>&1; then
               gh release upload "$OLD_TAG" dist-flat/* --clobber -R "${{ github.repository }}"
             fi

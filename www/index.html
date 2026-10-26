@@ -7,6 +7,7 @@
 <title>Saint Jacquet Distribution</title>
 <link rel="icon" type="image/png" href="assets/favicon.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="apple-touch-startup-image" href="assets/ios-splash.jpg">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -119,6 +120,10 @@ nav .bd{position:absolute;top:-4px;left:calc(50% + 6px);background:var(--ko);col
 .seg2 button svg{width:18px;height:18px}
 .seg2 button.on{background:#fff;color:var(--blue);box-shadow:0 1px 4px rgba(10,31,92,.15)}
 .link{background:none;border:0;color:var(--blue);font:600 13px inherit;font-family:inherit;cursor:pointer;display:block;margin:12px auto 0}
+.pwa-box{margin:0 14px 20px;background:rgba(7,37,99,.84);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.28);color:#fff;border-radius:14px;padding:11px 13px;font-size:12px;line-height:1.45;position:relative;box-shadow:0 8px 22px rgba(4,15,36,.28)}
+.pwa-box b{display:block;font-size:13px;margin-bottom:3px}
+.pwa-box svg{width:15px;height:15px;vertical-align:-3px;margin:0 2px;stroke:#7dd3fc}
+.pwa-x{position:absolute;top:6px;right:8px;background:none;border:0;color:rgba(255,255,255,.75);font-size:18px;line-height:1;cursor:pointer;padding:2px 4px}
 </style>
 </head>
 <body>
@@ -357,6 +362,31 @@ function resaCard(r, admin){
     ${acts}</section>`;
 }
 
+let deferredInstallPrompt = null;
+window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredInstallPrompt = e; if (db && !db.session) render(); });
+window.addEventListener("appinstalled", () => { deferredInstallPrompt = null; ui.hidePwa = true; if (db && !db.session) render(); });
+
+function pwaBannerHTML(){
+  if (ui.hidePwa) return "";
+  const cap = window.Capacitor;
+  if (cap && typeof cap.isNativePlatform === "function" && cap.isNativePlatform()) return "";
+  if (window.navigator.standalone === true || (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches)) return "";
+  const ua = navigator.userAgent || "";
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  if (isIOS){
+    const sh = '<svg viewBox="0 0 24 24"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+    return `<div class="pwa-box"><button class="pwa-x" data-act="hidepwa" aria-label="Fermer">×</button>
+      <b>📲 Installer l'application sur votre iPhone</b>
+      Ouvrez ce lien dans <strong>Safari</strong>, appuyez sur Partager ${sh} puis sur <strong>« Sur l'écran d'accueil »</strong>.</div>`;
+  }
+  if (deferredInstallPrompt){
+    return `<div class="pwa-box"><button class="pwa-x" data-act="hidepwa" aria-label="Fermer">×</button>
+      <b>📲 Application Saint Jacquet disponible</b>
+      <button class="btn sm" style="margin-top:6px;width:100%;background:#0ea5e9" data-act="installpwa">Installer sur l'écran d'accueil</button></div>`;
+  }
+  return "";
+}
+
 /* ---------- Connexion ---------- */
 function viewLogin(){
   const adm = ui.lrole === "admin", up = ui.lmode === "up";
@@ -386,6 +416,7 @@ function viewLogin(){
         <button class="link" data-act="lmode" data-id="up">Créer un compte client</button>
       `}
     </div>
+    ${pwaBannerHTML()}
   </div>`;
 }
 
@@ -589,6 +620,14 @@ const A = {
     enter({ role:"admin" });
   },
   logout:()=>{ closeSheet(); db.session = null; ui.lrole = "client"; ui.lmode = "in"; save(); render(); },
+  hidepwa:()=>{ ui.hidePwa = true; render(); },
+  installpwa:async()=>{
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const res = await deferredInstallPrompt.userChoice.catch(()=>null);
+    if (res && res.outcome === "accepted"){ deferredInstallPrompt = null; ui.hidePwa = true; }
+    render();
+  },
   tab:(id)=>{ ui.tab = id; render(); },
   slide:(id)=>{ goSlide(+id); startSlider(); },
   fmode:(id)=>{ ui.f = { mode:id, from:"", to:"" }; ui.all = false; render(); },

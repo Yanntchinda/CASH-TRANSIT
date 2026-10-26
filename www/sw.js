@@ -1,10 +1,11 @@
-const CACHE_NAME = "saint-jacquet-v5";
+const CACHE_NAME = "saint-jacquet-v6";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./assets/logo.jpg",
   "./assets/logo-transparent.png",
+  "./assets/ios-splash.jpg",
   "./assets/login-bg.jpg",
   "./assets/slide-air.jpg",
   "./assets/slide-sea.jpg",
