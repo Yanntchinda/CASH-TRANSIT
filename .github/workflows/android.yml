@@ -21,6 +21,11 @@ jobs:
           java-version: '17'
       - name: Install Android SDK
         run: |
+          echo "::notice::ANDROID_HOME=${ANDROID_HOME:-not-set}, ANDROID_SDK_ROOT=${ANDROID_SDK_ROOT:-not-set}"
+          for path in "${ANDROID_HOME:-/missing}" /usr/local/lib/android/sdk /opt/android-sdk; do
+            [ ! -d "$path" ] || echo "::notice::$path: $(ls -1 "$path" | tr '\n' ' ')"
+          done
+          export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
           sdkmanager 'platforms;android-35' 'build-tools;35.0.0' > sdk-install.log 2>&1 || {
             tail -60 sdk-install.log | while IFS= read -r line; do echo "::error::$line"; done
             exit 1
