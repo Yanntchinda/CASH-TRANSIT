@@ -101,7 +101,7 @@ nav .bd{position:absolute;top:-4px;left:calc(50% + 6px);background:var(--ko);col
 .main.nopad{background:linear-gradient(180deg,rgba(5,25,51,.34),rgba(5,20,45,.84)),url('assets/fond-connexion.jpg') center center/cover no-repeat}
 .login{min-height:100%;display:flex;flex-direction:column;justify-content:center;padding:24px 18px 30px;color:#fff}
 .lg-top{text-align:center;padding:0 0 20px}
-.lg-top img{display:block;margin:0 auto;width:155px;max-width:60%;height:auto;padding:12px;background:rgba(226,239,246,.88);border-radius:22px;box-shadow:0 10px 30px rgba(2,17,38,.2)}
+.lg-top img{display:block;margin:0 auto;width:230px;max-width:78%;height:auto;padding:12px;background:rgba(226,239,246,.88);border-radius:22px;box-shadow:0 10px 30px rgba(2,17,38,.2)}
 .lg-top h1{margin:16px 0 4px;font-size:24px;letter-spacing:.2px}
 .lg-top p{margin:0;color:#d9e7f3;font-size:13px}
 .lg-card{background:rgba(5,27,53,.78);border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:18px;box-shadow:0 16px 36px rgba(1,12,29,.3);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
@@ -364,20 +364,20 @@ function viewLogin(){
         <button class="${adm?"on":""}" data-act="lrole" data-id="admin">${I.shield}Administrateur</button>
       </div>
       ${adm ? `
-        <span class="lbl">Identifiant</span><input class="box" id="lLogin" autocomplete="username" placeholder="Identifiant administrateur">
-        <span class="lbl">Mot de passe</span><input class="box" id="lPwd" type="password" autocomplete="current-password" placeholder="Mot de passe">
+        <span class="lbl">Identifiant</span><input class="box" id="lLogin" autocomplete="off" placeholder="Identifiant administrateur">
+        <span class="lbl">Mot de passe</span><input class="box" id="lPwd" type="password" autocomplete="off" placeholder="Mot de passe">
         <button class="btn full" id="lgBtn" data-act="alogin">Accéder au tableau de bord</button>
       ` : up ? `
-        <span class="lbl">Nom / société</span><input class="box" id="lNom" placeholder="Ex : Mballa Import-Export">
-        <span class="lbl">Contact WhatsApp</span><input class="box" id="lTel" inputmode="tel" placeholder="Ex : 6XX XXX XXX (numéro WhatsApp)">
-        <span class="lbl">Adresse e-mail</span><input class="box" id="lEmail" type="email" autocomplete="email" placeholder="vous@exemple.com">
-        <span class="lbl">Mot de passe (6 caractères min.)</span><input class="box" id="lPwd" type="password" autocomplete="new-password">
-        <span class="lbl">Confirmer le mot de passe</span><input class="box" id="lPwd2" type="password" autocomplete="new-password">
+        <span class="lbl">Nom / société</span><input class="box" id="lNom" autocomplete="off" placeholder="Ex : Mballa Import-Export">
+        <span class="lbl">Contact WhatsApp</span><input class="box" id="lTel" autocomplete="off" inputmode="tel" placeholder="Ex : 6XX XXX XXX (numéro WhatsApp)">
+        <span class="lbl">Adresse e-mail</span><input class="box" id="lEmail" type="email" autocomplete="off" placeholder="vous@exemple.com">
+        <span class="lbl">Mot de passe (6 caractères min.)</span><input class="box" id="lPwd" type="password" autocomplete="off">
+        <span class="lbl">Confirmer le mot de passe</span><input class="box" id="lPwd2" type="password" autocomplete="off">
         <button class="btn full" id="lgBtn" data-act="csignup">Créer mon compte</button>
         <button class="link" data-act="lmode" data-id="in">J'ai déjà un compte</button>
       ` : `
-        <span class="lbl">Adresse e-mail</span><input class="box" id="lEmail" type="email" autocomplete="username" placeholder="vous@exemple.com">
-        <span class="lbl">Mot de passe</span><input class="box" id="lPwd" type="password" autocomplete="current-password">
+        <span class="lbl">Adresse e-mail</span><input class="box" id="lEmail" type="email" autocomplete="off" placeholder="vous@exemple.com">
+        <span class="lbl">Mot de passe</span><input class="box" id="lPwd" type="password" autocomplete="off">
         <button class="btn full" id="lgBtn" data-act="clogin">Se connecter</button>
         <button class="link" data-act="lmode" data-id="up">Créer un compte client</button>
       `}
@@ -497,9 +497,9 @@ function viewProfileAdmin(){
     <div class="kv"><span>Rôle</span><b>Administrateur</b></div>
   </section>
   <section class="card"><h2>Changer le mot de passe</h2>
-    <span class="lbl">Mot de passe actuel</span><input class="box" id="aOld" type="password" autocomplete="current-password">
-    <span class="lbl">Nouveau mot de passe (6 caractères min.)</span><input class="box" id="aNew" type="password" autocomplete="new-password">
-    <span class="lbl">Confirmer</span><input class="box" id="aNew2" type="password" autocomplete="new-password">
+    <span class="lbl">Mot de passe actuel</span><input class="box" id="aOld" type="password" autocomplete="off">
+    <span class="lbl">Nouveau mot de passe (6 caractères min.)</span><input class="box" id="aNew" type="password" autocomplete="off">
+    <span class="lbl">Confirmer</span><input class="box" id="aNew2" type="password" autocomplete="off">
     <button class="btn full" data-act="savepwd">Mettre à jour</button>
   </section>
   <button class="btn full danger" data-act="logout">Se déconnecter</button>
