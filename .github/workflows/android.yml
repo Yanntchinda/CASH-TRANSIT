@@ -52,10 +52,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk fast-cargo-demo.apk
-          if gh release view fast-cargo-demo-1.3.0-0b725d85 >/dev/null 2>&1; then
-            gh release upload fast-cargo-demo-1.3.0-0b725d85 fast-cargo-demo.apk --clobber
+          if gh release view fast-cargo-demo-1.4.0-0b725d85 >/dev/null 2>&1; then
+            gh release upload fast-cargo-demo-1.4.0-0b725d85 fast-cargo-demo.apk --clobber
           else
-            gh release create fast-cargo-demo-1.3.0-0b725d85 fast-cargo-demo.apk \
+            gh release create fast-cargo-demo-1.4.0-0b725d85 fast-cargo-demo.apk \
               --target "$GITHUB_SHA" \
               --title "Fast Cargo Android — démonstration" \
               --notes "Version de démonstration signée avec une clé de debug. Android 6.0 ou ultérieur. Données stockées localement sur l'appareil ; paiements non réels."
