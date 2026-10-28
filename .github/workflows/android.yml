@@ -7,11 +7,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -19,15 +19,22 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
       - name: Install Android SDK
-        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+        run: |
+          sdkmanager 'platforms;android-35' 'build-tools;35.0.0' > sdk-install.log 2>&1 || {
+            tail -60 sdk-install.log | while IFS= read -r line; do echo "::error::$line"; done
+            exit 1
+          }
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
       - name: Build debug APK
         working-directory: android
-        run: gradle --no-daemon assembleDebug
+        run: |
+          gradle --no-daemon assembleDebug > build.log 2>&1 || {
+            tail -100 build.log | while IFS= read -r line; do echo "::error::$line"; done
+            exit 1
+          }
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
@@ -35,3 +42,16 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Publish demo APK on GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk saint-jacquet-demo.apk
+          if gh release view android-demo-0b725d85 >/dev/null 2>&1; then
+            gh release upload android-demo-0b725d85 saint-jacquet-demo.apk --clobber
+          else
+            gh release create android-demo-0b725d85 saint-jacquet-demo.apk \
+              --target "$GITHUB_SHA" \
+              --title "Application Android — démonstration" \
+              --notes "Version de démonstration signée avec une clé de debug. Android 6.0 ou ultérieur. Données stockées localement sur l'appareil ; paiements non réels."
+          fi
