@@ -10,8 +10,8 @@ android {
         applicationId 'cm.saintjacquet.transit'
         minSdk 23
         targetSdk 35
-        versionCode 1
-        versionName '1.0.0-demo'
+        versionCode 2
+        versionName '1.1.0-demo'
     }
 
     sourceSets.main.assets.srcDir(layout.buildDirectory.dir('generated/web-assets'))

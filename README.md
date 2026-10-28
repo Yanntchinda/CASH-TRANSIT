@@ -1,4 +1,4 @@
-# Saint Jacquet Distribution
+# Fast Cargo
 
 Application de démonstration pour consulter des départs de fret aérien et maritime, demander une réservation et gérer les départs et réservations depuis un espace administrateur.
 
